@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstddef>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -21,6 +20,8 @@ enum TokenType {
     EndOfFile,
     Int,
     Float,
+    Char,
+    String,
     Name,
     If,
     While,
@@ -33,6 +34,7 @@ enum TokenType {
     Plus,
     Minus,
     Asterisk,
+    Exponentation,
     Slash,
     Percent,
     LogicalNot,
@@ -81,7 +83,7 @@ public:
 
 class Lexer {
 public:
-    Lexer(std::string text)
+    Lexer(std::string& text)
         : m_text(text)
     {
     }
@@ -90,16 +92,20 @@ public:
 
 private:
     Token make_number();
+    Token make_char();
+    Token make_string();
     Token make_name_or_keyword();
     TokenType identifier_token_type(const std::string& value);
     Token make_single_or_double(const TokenType case_single,
         const TokenType case_double, const char second);
+    void push_slash_or_comment(std::vector<Token>& tokens);
     bool done();
     void step();
     void print_error(const std::string& msg);
+    void error_and_exit(const std::string& msg);
     Position pos(int length);
 
-    const std::string m_text;
+    const std::string& m_text;
     size_t m_index { 0 };
     int m_row { 1 }, m_col { 1 };
 };
