@@ -108,14 +108,14 @@ Token Lexer::make_number()
         value.push_back(m_text[m_index]);
         step();
     }
-    auto type = m_text.find('.') != std::string::npos ? TokenType::Float
-                                                      : TokenType::Int;
+    const auto type = m_text.find('.') != std::string::npos ? TokenType::Float
+                                                            : TokenType::Int;
     return Token(type, value, pos(value.length()));
 }
 
 Token Lexer::make_char()
 {
-    auto check_done = [&]() {
+    const auto check_done = [&]() {
         if (done())
             error_and_exit("unexpected end of char literal");
     };
@@ -261,7 +261,7 @@ void Lexer::print_error(const std::string& msg)
     //           << "m_col = " << m_col << ", "
     //           << "m_row = " << m_row << ", "
     //           << "span = " << span << "\n";
-    std::cerr << "error: " << msg << "\n\n"
+    std::cerr << "LexerError: " << msg << "\n\n"
               << m_row << ":\t" << m_text.substr(m_index - (m_col - 1), span)
               << "\n\t" << std::string((m_col - 1), ' ') << "^ " << msg
               << "\n\n";
@@ -281,50 +281,50 @@ Position Lexer::pos(int length)
 std::string token_type_to_string(TokenType type)
 {
     switch (type) {
-    case EndOfFile: return "EndOfFile";
-    case Int: return "Int";
-    case Float: return "Float";
-    case Char: return "Char";
-    case String: return "String";
-    case Name: return "Name";
-    case If: return "If";
-    case While: return "While";
-    case Break: return "Break";
-    case Func: return "Func";
-    case Return: return "Return";
-    case Let: return "Let";
-    case False: return "False";
-    case True: return "True";
-    case Plus: return "Plus";
-    case Minus: return "Minus";
-    case Asterisk: return "Asterisk";
-    case Exponentation: return "Exponentation";
-    case Slash: return "Slash";
-    case Percent: return "Percent";
-    case LogicalNot: return "LogicalNot";
-    case LogicalAnd: return "LogicalAnd";
-    case LogicalOr: return "LogicalOr";
-    case BitwiseNot: return "BitwiseNot";
-    case BitwiseAnd: return "BitwiseAnd";
-    case BitwiseOr: return "BitwiseOr";
-    case BitwiseXor: return "BitwiseXor";
-    case LessThan: return "LessThan";
-    case LessThanEqual: return "LessThanEqual";
-    case GreaterThan: return "GreaterThan";
-    case GreaterThanEqual: return "GreaterThanEqual";
-    case Equal: return "Equal";
-    case NotEqual: return "NotEqual";
-    case AssignEqual: return "AssignEqual";
-    case LParen: return "LParen";
-    case RParen: return "RParen";
-    case LBrace: return "LBrace";
-    case RBrace: return "RBrace";
-    case LBracket: return "LBracket";
-    case RBracket: return "RBracket";
-    case Comma: return "Comma";
-    case Colon: return "Colon";
-    case Semicolon: return "Semicolon";
-    case ThinArrow: return "ThinArrow";
+    case TokenType::EndOfFile: return "EndOfFile";
+    case TokenType::Int: return "Int";
+    case TokenType::Float: return "Float";
+    case TokenType::Char: return "Char";
+    case TokenType::String: return "String";
+    case TokenType::Name: return "Name";
+    case TokenType::If: return "If";
+    case TokenType::While: return "While";
+    case TokenType::Break: return "Break";
+    case TokenType::Func: return "Func";
+    case TokenType::Return: return "Return";
+    case TokenType::Let: return "Let";
+    case TokenType::False: return "False";
+    case TokenType::True: return "True";
+    case TokenType::Plus: return "Plus";
+    case TokenType::Minus: return "Minus";
+    case TokenType::Asterisk: return "Asterisk";
+    case TokenType::Exponentation: return "Exponentation";
+    case TokenType::Slash: return "Slash";
+    case TokenType::Percent: return "Percent";
+    case TokenType::LogicalNot: return "LogicalNot";
+    case TokenType::LogicalAnd: return "LogicalAnd";
+    case TokenType::LogicalOr: return "LogicalOr";
+    case TokenType::BitwiseNot: return "BitwiseNot";
+    case TokenType::BitwiseAnd: return "BitwiseAnd";
+    case TokenType::BitwiseOr: return "BitwiseOr";
+    case TokenType::BitwiseXor: return "BitwiseXor";
+    case TokenType::LessThan: return "LessThan";
+    case TokenType::LessThanEqual: return "LessThanEqual";
+    case TokenType::GreaterThan: return "GreaterThan";
+    case TokenType::GreaterThanEqual: return "GreaterThanEqual";
+    case TokenType::Equal: return "Equal";
+    case TokenType::NotEqual: return "NotEqual";
+    case TokenType::AssignEqual: return "AssignEqual";
+    case TokenType::LParen: return "LParen";
+    case TokenType::RParen: return "RParen";
+    case TokenType::LBrace: return "LBrace";
+    case TokenType::RBrace: return "RBrace";
+    case TokenType::LBracket: return "LBracket";
+    case TokenType::RBracket: return "RBracket";
+    case TokenType::Comma: return "Comma";
+    case TokenType::Colon: return "Colon";
+    case TokenType::Semicolon: return "Semicolon";
+    case TokenType::ThinArrow: return "ThinArrow";
     }
     std::cerr << "internal: unexhaustive match at " << __FILE__ << ":"
               << __LINE__ << ": in " << __func__ << "\n";

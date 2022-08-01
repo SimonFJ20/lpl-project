@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 add_executable(lplc
     main.cpp
     lexer.cpp
+    parser.cpp
 )
 
 set_property(TARGET lplc PROPERTY CXX_STANDARD 20)

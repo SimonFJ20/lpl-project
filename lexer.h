@@ -16,7 +16,7 @@ public:
     const size_t index, length, row, col;
 };
 
-enum TokenType {
+enum class TokenType {
     EndOfFile,
     Int,
     Float,
