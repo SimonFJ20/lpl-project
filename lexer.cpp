@@ -1,7 +1,6 @@
 #include "lexer.h"
-#include <algorithm>
-#include <cctype>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -59,12 +58,14 @@ std::vector<Token> Lexer::tokenize()
                 tokens.push_back(single_char(TokenType::BitwiseXor));
                 break;
             case '<':
-                tokens.push_back(make_single_or_double(
-                    TokenType::LessThan, TokenType::LessThanEqual, '='));
+                tokens.push_back(make_single_or_two_double(TokenType::LessThan,
+                    TokenType::LessThanEqual, '=', TokenType::BitwiseLeftShift,
+                    '<'));
                 break;
             case '>':
-                tokens.push_back(make_single_or_double(
-                    TokenType::GreaterThan, TokenType::GreaterThanEqual, '='));
+                tokens.push_back(make_single_or_two_double(
+                    TokenType::GreaterThan, TokenType::GreaterThanEqual, '=',
+                    TokenType::BitwiseRightShift, '>'));
                 break;
             case '=':
                 tokens.push_back(make_single_or_double(
@@ -206,6 +207,24 @@ Token Lexer::make_single_or_double(
     }
 }
 
+Token Lexer::make_single_or_two_double(const TokenType case_single,
+    const TokenType case_double_a, const char second_a,
+    const TokenType case_double_b, const char second_b)
+{
+    const std::string value { m_text[m_index] };
+    const auto single_or_double_a
+        = make_single_or_double(case_single, case_double_a, second_a);
+    if (single_or_double_a.type == case_single && !done()
+        && m_text[m_index] == second_b) {
+        const Token t(
+            case_double_b, value + m_text[m_index], pos(value.length() + 1));
+        step();
+        return t;
+    } else {
+        return single_or_double_a;
+    }
+}
+
 void Lexer::push_slash_or_comment(std::vector<Token>& tokens)
 {
     const std::string value { m_text[m_index] };
@@ -276,68 +295,4 @@ void Lexer::error_and_exit(const std::string& msg)
 Position Lexer::pos(int length)
 {
     return Position(m_index, length, m_col, m_row);
-}
-
-std::string token_type_to_string(TokenType type)
-{
-    switch (type) {
-    case TokenType::EndOfFile: return "EndOfFile";
-    case TokenType::Int: return "Int";
-    case TokenType::Float: return "Float";
-    case TokenType::Char: return "Char";
-    case TokenType::String: return "String";
-    case TokenType::Name: return "Name";
-    case TokenType::If: return "If";
-    case TokenType::While: return "While";
-    case TokenType::Break: return "Break";
-    case TokenType::Func: return "Func";
-    case TokenType::Return: return "Return";
-    case TokenType::Let: return "Let";
-    case TokenType::False: return "False";
-    case TokenType::True: return "True";
-    case TokenType::Plus: return "Plus";
-    case TokenType::Minus: return "Minus";
-    case TokenType::Asterisk: return "Asterisk";
-    case TokenType::Exponentation: return "Exponentation";
-    case TokenType::Slash: return "Slash";
-    case TokenType::Percent: return "Percent";
-    case TokenType::LogicalNot: return "LogicalNot";
-    case TokenType::LogicalAnd: return "LogicalAnd";
-    case TokenType::LogicalOr: return "LogicalOr";
-    case TokenType::BitwiseNot: return "BitwiseNot";
-    case TokenType::BitwiseAnd: return "BitwiseAnd";
-    case TokenType::BitwiseOr: return "BitwiseOr";
-    case TokenType::BitwiseXor: return "BitwiseXor";
-    case TokenType::LessThan: return "LessThan";
-    case TokenType::LessThanEqual: return "LessThanEqual";
-    case TokenType::GreaterThan: return "GreaterThan";
-    case TokenType::GreaterThanEqual: return "GreaterThanEqual";
-    case TokenType::Equal: return "Equal";
-    case TokenType::NotEqual: return "NotEqual";
-    case TokenType::AssignEqual: return "AssignEqual";
-    case TokenType::LParen: return "LParen";
-    case TokenType::RParen: return "RParen";
-    case TokenType::LBrace: return "LBrace";
-    case TokenType::RBrace: return "RBrace";
-    case TokenType::LBracket: return "LBracket";
-    case TokenType::RBracket: return "RBracket";
-    case TokenType::Comma: return "Comma";
-    case TokenType::Colon: return "Colon";
-    case TokenType::Semicolon: return "Semicolon";
-    case TokenType::ThinArrow: return "ThinArrow";
-    }
-    std::cerr << "internal: unexhaustive match at " << __FILE__ << ":"
-              << __LINE__ << ": in " << __func__ << "\n";
-    exit(1);
-}
-
-std::string Token::to_string()
-{
-    std::string result {};
-    result += "(";
-    result += token_type_to_string(type);
-    result += ", \"";
-    result += value;
-    result += "\")";
-    return result;
 }

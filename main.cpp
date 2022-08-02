@@ -20,11 +20,15 @@ std::string read_file_to_string(std::string filename)
 int main()
 {
     auto text = read_file_to_string("../examples/test.lpl");
-    std::cout << "Compiling\n";
-    Lexer lexer(text);
+    std::cout << "Tokenizing\n";
+    auto lexer = Lexer(text);
     auto tokens = lexer.tokenize();
     std::cout << "Lexer yeilded " << tokens.size() << " tokens\n";
     for (auto& t : tokens) {
         std::cout << "\t" << t.to_string() << "\n";
     }
+    std::cout << "Parsing\n";
+    auto parser = Parser(tokens);
+    auto ast = parser.parse_expression();
+    std::cout << ast->to_string() << "\n";
 }

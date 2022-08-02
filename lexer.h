@@ -1,8 +1,6 @@
 #pragma once
 
-#include <sstream>
 #include <string>
-#include <string_view>
 #include <vector>
 
 struct Position {
@@ -44,6 +42,8 @@ enum class TokenType {
     BitwiseAnd,
     BitwiseOr,
     BitwiseXor,
+    BitwiseLeftShift,
+    BitwiseRightShift,
     LessThan,
     LessThanEqual,
     GreaterThan,
@@ -68,9 +68,9 @@ std::string token_type_to_string(TokenType type);
 struct Token {
 public:
     Token(TokenType type, std::string m_value, Position pos)
-        : type(type)
-        , value(m_value)
-        , pos(pos)
+        : type { type }
+        , value { m_value }
+        , pos { pos }
     {
     }
 
@@ -84,7 +84,7 @@ public:
 class Lexer {
 public:
     Lexer(std::string& text)
-        : m_text(text)
+        : m_text { text }
     {
     }
 
@@ -98,6 +98,9 @@ private:
     TokenType identifier_token_type(const std::string& value);
     Token make_single_or_double(const TokenType case_single,
         const TokenType case_double, const char second);
+    Token make_single_or_two_double(const TokenType case_single,
+        const TokenType case_double_a, const char second_a,
+        const TokenType case_double_b, const char second_b);
     void push_slash_or_comment(std::vector<Token>& tokens);
     bool done();
     void step();

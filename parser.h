@@ -2,11 +2,14 @@
 
 #include "lexer.h"
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace Parsed {
 
 struct Node {
+    virtual ~Node() {};
+    virtual std::string to_string() = 0;
 };
 
 enum class ExpressionType {
@@ -20,6 +23,7 @@ enum class ExpressionType {
 };
 
 struct Expression : Node {
+    virtual ~Expression() {};
     virtual ExpressionType expression_type() = 0;
 };
 
@@ -30,24 +34,36 @@ enum class BinaryOperator {
     Divide,
     Modulus,
     Exponentiate,
-
+    LogicalAnd,
+    LogicalOr,
+    BitwiseAnd,
+    BitwiseOr,
+    BitwiseXor,
+    BitwiseLeftShift,
+    BitwiseRightShift,
+    LessThan,
+    LessThanEqual,
+    GreaterThan,
+    GreaterThanEqual,
+    Equal,
+    NotEqual,
 };
 
 struct BinaryOperation : Expression {
-    BinaryOperation(std::shared_ptr<Expression> left,
-        std::shared_ptr<Expression> right, BinaryOperator operator_)
-        : left(left)
-        , right(right)
-        , operator_(operator_)
+    BinaryOperation(std::unique_ptr<Expression> left,
+        std::unique_ptr<Expression> right, BinaryOperator operator_)
+        : left { std::move(left) }
+        , right { std::move(right) }
+        , operator_ { operator_ }
     {
     }
-
+    std::string to_string() override;
     ExpressionType expression_type() override
     {
         return ExpressionType::BinaryOperation;
     }
 
-    std::shared_ptr<Expression> left, right;
+    std::unique_ptr<Expression> left, right;
     const BinaryOperator operator_;
 };
 
@@ -60,27 +76,27 @@ enum class UnaryOperator {
 
 struct UnaryOperation : Expression {
     UnaryOperation(
-        std::shared_ptr<Expression> expression, BinaryOperator operator_)
-        : expression(expression)
-        , operator_(operator_)
+        std::unique_ptr<Expression> expression, UnaryOperator operator_)
+        : expression { std::move(expression) }
+        , operator_ { operator_ }
     {
     }
-
+    std::string to_string() override;
     ExpressionType expression_type() override
     {
         return ExpressionType::UnaryOperation;
     }
 
-    std::shared_ptr<Expression> expression;
-    const BinaryOperator operator_;
+    std::unique_ptr<Expression> expression;
+    const UnaryOperator operator_;
 };
 
 struct Int : Expression {
     Int(int value)
-        : value(value)
+        : value { value }
     {
     }
-
+    std::string to_string() override;
     ExpressionType expression_type() override { return ExpressionType::Int; }
 
     const int value;
@@ -88,10 +104,10 @@ struct Int : Expression {
 
 struct Float : Expression {
     Float(double value)
-        : value(value)
+        : value { value }
     {
     }
-
+    std::string to_string() override;
     ExpressionType expression_type() override { return ExpressionType::Float; }
 
     const double value;
@@ -99,10 +115,10 @@ struct Float : Expression {
 
 struct Char : Expression {
     Char(char value)
-        : value(value)
+        : value { value }
     {
     }
-
+    std::string to_string() override;
     ExpressionType expression_type() override { return ExpressionType::Char; }
 
     const char value;
@@ -110,10 +126,10 @@ struct Char : Expression {
 
 struct String : Expression {
     String(std::string value)
-        : value(value)
+        : value { value }
     {
     }
-
+    std::string to_string() override;
     ExpressionType expression_type() override { return ExpressionType::String; }
 
     const std::string value;
@@ -121,10 +137,10 @@ struct String : Expression {
 
 struct Bool : Expression {
     Bool(bool value)
-        : value(value)
+        : value { value }
     {
     }
-
+    std::string to_string() override;
     ExpressionType expression_type() override { return ExpressionType::Bool; }
 
     const bool value;
@@ -135,14 +151,16 @@ struct Bool : Expression {
 class Parser {
 public:
     Parser(const std::vector<Token>& tokens)
-        : m_tokens(tokens)
+        : m_tokens { tokens }
     {
     }
 
-    Parsed::Node parse();
+    std::unique_ptr<Parsed::Node> parse();
     std::unique_ptr<Parsed::Expression> parse_expression();
     std::unique_ptr<Parsed::Expression> parse_binary_operation();
+    int binary_operator_precedence(Parsed::BinaryOperator op);
     std::unique_ptr<Parsed::Expression> parse_unary_operation();
+    std::optional<Parsed::BinaryOperator> maybe_parse_binary_operator();
     std::unique_ptr<Parsed::Expression> parse_value();
     std::unique_ptr<Parsed::Expression> parse_grouped_expression();
     std::unique_ptr<Parsed::Int> parse_int();

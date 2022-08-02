@@ -9,6 +9,7 @@ add_executable(lplc
     main.cpp
     lexer.cpp
     parser.cpp
+    to_string.cpp
 )
 
 set_property(TARGET lplc PROPERTY CXX_STANDARD 20)
