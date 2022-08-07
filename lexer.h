@@ -74,7 +74,7 @@ public:
     {
     }
 
-    std::string to_string();
+    std::string to_string() const;
 
     const TokenType type;
     const std::string value;

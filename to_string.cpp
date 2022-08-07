@@ -4,7 +4,36 @@
 #include <sstream>
 #include <string>
 
-std::string Parsed::BinaryOperation::to_string()
+std::string Parsed::Assignment::to_string() const
+{
+    auto result = std::stringstream {};
+    result << "Assignment { target: " << target->to_string()
+           << ", value: " << value->to_string() << " }";
+    return result.str();
+}
+
+std::string Parsed::ExpressionStatement::to_string() const
+{
+    auto result = std::stringstream {};
+    result << "ExpressionStatement { " << expression->to_string() << " }";
+    return result.str();
+}
+
+std::string Parsed::Block::to_string() const
+{
+    auto result = std::stringstream {};
+    result << "Block { statements: [ ";
+    for (const auto& s : statements)
+        result << s->to_string() << ", ";
+    result << " ]";
+    if (value) {
+        result << ", value: " << (*value)->to_string();
+    }
+    result << " }";
+    return result.str();
+}
+
+std::string Parsed::BinaryOperation::to_string() const
 {
     const auto op = [&]() {
         switch (operator_) {
@@ -41,7 +70,7 @@ std::string Parsed::BinaryOperation::to_string()
     return result.str();
 }
 
-std::string Parsed::UnaryOperation::to_string()
+std::string Parsed::UnaryOperation::to_string() const
 {
     const auto op = [&]() {
         switch (operator_) {
@@ -60,38 +89,55 @@ std::string Parsed::UnaryOperation::to_string()
     return result.str();
 }
 
-std::string Parsed::Int::to_string()
+std::string Parsed::Call::to_string() const
+{
+    auto result = std::stringstream {};
+    result << "Call { callee: " << callee->to_string() << ", args: [ ";
+    for (const auto& arg : args)
+        result << arg->to_string() << ", ";
+    result << " ] }";
+    return result.str();
+}
+
+std::string Parsed::Int::to_string() const
 {
     auto result = std::stringstream {};
     result << "Int { " << value << " }";
     return result.str();
 }
 
-std::string Parsed::Float::to_string()
+std::string Parsed::Float::to_string() const
 {
     auto result = std::stringstream {};
     result << "Float { " << value << " }";
     return result.str();
 }
 
-std::string Parsed::Char::to_string()
+std::string Parsed::Char::to_string() const
 {
     auto result = std::stringstream {};
     result << "Char { '" << value << "' }";
     return result.str();
 }
 
-std::string Parsed::String::to_string()
+std::string Parsed::String::to_string() const
 {
     auto result = std::stringstream {};
     result << "String { \"" << value << "\" }";
     return result.str();
 }
 
-std::string Parsed::Bool::to_string()
+std::string Parsed::Bool::to_string() const
 {
     auto result = std::stringstream {};
     result << "Bool { " << (value ? "true" : "false") << " }";
+    return result.str();
+}
+
+std::string Parsed::Symbol::to_string() const
+{
+    auto result = std::stringstream {};
+    result << "Symbol { " << value << " }";
     return result.str();
 }
 
@@ -150,7 +196,7 @@ std::string token_type_to_string(TokenType type)
     exit(1);
 }
 
-std::string Token::to_string()
+std::string Token::to_string() const
 {
     std::stringstream result {};
     result << "Token { type: " << token_type_to_string(type) << ", value: \""

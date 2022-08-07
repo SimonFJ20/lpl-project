@@ -3,6 +3,8 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <memory>
+#include <optional>
 #include <sstream>
 
 std::string read_file_to_string(std::string filename)

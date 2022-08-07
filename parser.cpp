@@ -9,9 +9,61 @@
 
 // }
 
+std::optional<std::unique_ptr<Parsed::Assignment>>
+Parser::maybe_parse_assignment()
+{
+    const auto original_index = m_index;
+    auto target = parse_expression();
+    if (current().type == TokenType::AssignEqual) {
+        step();
+        auto value = parse_expression();
+        return std::make_unique<Parsed::Assignment>(
+            std::move(target), std::move(value));
+    } else {
+        m_index = original_index;
+        return std::nullopt;
+    }
+}
+
 std::unique_ptr<Parsed::Expression> Parser::parse_expression()
 {
-    return parse_binary_operation();
+    switch (current().type) {
+    case TokenType::LBrace: return parse_block();
+    default: return parse_binary_operation();
+    }
+}
+
+std::unique_ptr<Parsed::Block> Parser::parse_block()
+{
+    step();
+    auto statements = std::vector<std::unique_ptr<Parsed::Statement>> {};
+    auto value
+        = std::optional<std::unique_ptr<Parsed::Expression>> { std::nullopt };
+    while (!done() && current().type != TokenType::RBrace) {
+        if (auto statement = maybe_parse_assignment()) {
+            statements.push_back(std::move(*statement));
+            if (current().type != TokenType::Semicolon)
+                error_and_exit("expected `;`");
+            step();
+        } else {
+            auto expression = parse_expression();
+            if (current().type == TokenType::Semicolon) {
+                statements.push_back(
+                    std::make_unique<Parsed::ExpressionStatement>(
+                        std::move(expression)));
+                step();
+            } else if (current().type == TokenType::RBrace) {
+                value = std::move(expression);
+            } else {
+                error_and_exit("expected `;` or `}`");
+            }
+        }
+    }
+    if (done() || current().type != TokenType::RBrace)
+        error_and_exit("expected `}`");
+    step();
+    return std::make_unique<Parsed::Block>(
+        std::move(statements), std::move(value));
 }
 
 std::unique_ptr<Parsed::Expression> Parser::parse_binary_operation()
@@ -64,7 +116,7 @@ std::unique_ptr<Parsed::Expression> Parser::parse_binary_operation()
 
 std::unique_ptr<Parsed::Expression> Parser::parse_unary_operation()
 {
-    const auto& token = m_tokens[m_index];
+    const auto& token = current();
     const auto step_and_make_operation = [&](Parsed::UnaryOperator operator_) {
         step();
         return std::make_unique<Parsed::UnaryOperation>(
@@ -79,14 +131,37 @@ std::unique_ptr<Parsed::Expression> Parser::parse_unary_operation()
         return step_and_make_operation(Parsed::UnaryOperator::Add);
     case TokenType::Minus:
         return step_and_make_operation(Parsed::UnaryOperator::Negate);
-    default: return parse_value();
+    default: return parse_call();
+    }
+}
+
+std::unique_ptr<Parsed::Expression> Parser::parse_call()
+{
+    auto callee = parse_value();
+    if (current().type == TokenType::LParen) {
+        step();
+        auto args = std::vector<std::unique_ptr<Parsed::Expression>> {};
+        while (!done() && current().type != TokenType::RParen) {
+            args.push_back(parse_expression());
+            if (current().type == TokenType::RParen)
+                break;
+            else if (current().type != TokenType::Comma)
+                error_and_exit("expected `,` or `)`");
+            step();
+        }
+        if (current().type != TokenType::RParen)
+            error_and_exit("expected `)`");
+        step();
+        return std::make_unique<Parsed::Call>(
+            std::move(callee), std::move(args));
+    } else {
+        return callee;
     }
 }
 
 std::unique_ptr<Parsed::Expression> Parser::parse_value()
 {
-    const auto& token = m_tokens[m_index];
-    switch (token.type) {
+    switch (current().type) {
     case TokenType::LParen: return parse_grouped_expression();
     case TokenType::Int: return parse_int();
     case TokenType::Float: return parse_float();
@@ -94,6 +169,7 @@ std::unique_ptr<Parsed::Expression> Parser::parse_value()
     case TokenType::String: return parse_string();
     case TokenType::True: return parse_bool();
     case TokenType::False: return parse_bool();
+    case TokenType::Name: return parse_symbol();
     default:
         std::cerr << "internal: unexhaustive match at " << __FILE__ << ":"
                   << __LINE__ << ": in " << __func__ << "\n";
@@ -105,7 +181,7 @@ std::unique_ptr<Parsed::Expression> Parser::parse_grouped_expression()
 {
     step();
     auto expression = parse_expression();
-    if (m_tokens[m_index].type != TokenType::RParen)
+    if (current().type != TokenType::RParen)
         error_and_exit("expected `)`");
     step();
     return expression;
@@ -113,21 +189,21 @@ std::unique_ptr<Parsed::Expression> Parser::parse_grouped_expression()
 
 std::unique_ptr<Parsed::Int> Parser::parse_int()
 {
-    const auto& token = m_tokens[m_index];
+    const auto& token = current();
     step();
     return std::make_unique<Parsed::Int>(std::stoi(token.value));
 }
 
 std::unique_ptr<Parsed::Float> Parser::parse_float()
 {
-    const auto& token = m_tokens[m_index];
+    const auto& token = current();
     step();
     return std::make_unique<Parsed::Float>(std::stof(token.value));
 }
 
 std::unique_ptr<Parsed::Char> Parser::parse_char()
 {
-    const auto& token = m_tokens[m_index];
+    const auto& token = current();
     const auto value = [&]() {
         if (token.value[0] == '\\') {
             return unescape_char_value(token.value[1]);
@@ -141,7 +217,7 @@ std::unique_ptr<Parsed::Char> Parser::parse_char()
 
 std::unique_ptr<Parsed::String> Parser::parse_string()
 {
-    const auto& token = m_tokens[m_index];
+    const auto& token = current();
     step();
     return std::make_unique<Parsed::String>(
         unescape_string_value(token.value.substr(1, token.value.length() - 2)));
@@ -149,7 +225,7 @@ std::unique_ptr<Parsed::String> Parser::parse_string()
 
 std::unique_ptr<Parsed::Bool> Parser::parse_bool()
 {
-    const auto& token = m_tokens[m_index];
+    const auto& token = current();
     const auto& value = [&]() {
         if (token.value.compare("false") == 0)
             return false;
@@ -163,6 +239,13 @@ std::unique_ptr<Parsed::Bool> Parser::parse_bool()
     }();
     step();
     return std::make_unique<Parsed::Bool>(value);
+}
+
+std::unique_ptr<Parsed::Symbol> Parser::parse_symbol()
+{
+    const auto& token = current();
+    step();
+    return std::make_unique<Parsed::Symbol>(token.value);
 }
 
 std::string Parser::unescape_string_value(const std::string& value)
@@ -183,7 +266,7 @@ std::string Parser::unescape_string_value(const std::string& value)
     return result;
 }
 
-char Parser::unescape_char_value(const char c)
+constexpr char Parser::unescape_char_value(const char c) const
 {
     switch (c) {
     case 't': return '\t';
@@ -193,8 +276,9 @@ char Parser::unescape_char_value(const char c)
     default: return c;
     }
 }
+const Token& Parser::current() const { return m_tokens[m_index]; }
 
-bool Parser::done() { return m_index >= m_tokens.size(); }
+bool Parser::done() const { return m_index >= m_tokens.size(); }
 
 void Parser::step() { m_index++; }
 
@@ -205,7 +289,8 @@ void Parser::error_and_exit(const std::string& msg)
     exit(1);
 }
 
-int Parser::binary_operator_precedence(Parsed::BinaryOperator op)
+constexpr int Parser::binary_operator_precedence(
+    Parsed::BinaryOperator op) const
 {
     switch (op) {
     case Parsed::BinaryOperator::Add: return 11;
@@ -239,7 +324,7 @@ std::optional<Parsed::BinaryOperator> Parser::maybe_parse_binary_operator()
         step();
         return op;
     };
-    switch (m_tokens[m_index].type) {
+    switch (current().type) {
     case TokenType::Plus: return step_and(Parsed::BinaryOperator::Add);
     case TokenType::Minus: return step_and(Parsed::BinaryOperator::Subtract);
     case TokenType::Asterisk: return step_and(Parsed::BinaryOperator::Multiply);

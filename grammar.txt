@@ -1,0 +1,52 @@
+
+block           ::= "{" statements "}"
+
+statements      ::= (statement (";" statement):* ";"):? expression:?
+
+statement       ::=
+                |   let_binding
+                |   assign
+                |   expression
+
+
+let_binding     ::= "let" NAME "=" expression
+
+    /* look-ahead needed to disambiguate from expression */
+assignment      ::= NAME "=" expression
+
+expressions     ::= (expression ("," expression):* ",":?):?
+
+expression      ::= if
+                |   precedence1 
+
+if              ::= "if" expression block ("else" "if" expression block):* ("else" block):?
+
+precedence1     ::= precedence2
+precedence2     ::= precedence3
+precedence3     ::= precedence4
+precedence4     ::= precedence5
+precedence5     ::= precedence6
+precedence6     ::= precedence7
+precedence7     ::= precedence8
+precedence8     ::= (precedence8 ("==" | "!=")):? precedence9
+precedence9     ::= (precedence9 ("<" | "<=" | ">" | ">=")):? precedence10
+precedence10    ::= (precedence10 ("<<" | ">>")):? precedence11
+precedence11    ::= (precedence11 ("+" | "-")):? precedence12
+precedence12    ::= (precedence12 ("*" | "/" | "%")):? precedence13
+precedence13    ::= (precedence13 "**"):? precedence14      /* NOTE: left-associative */
+precedence14    ::= precedence15
+precedence15    ::= precedence16
+precedence16    ::= precedence17
+precedence17    ::= precedence17 "(" expressions ")
+                |   precedence17 "[" expression "]"
+                |   precedence18
+precedence18    ::= value
+
+value           ::= "(" expression ")"
+                |   INT
+                |   FLOAT
+                |   CHAR
+                |   STRING
+                |   BOOL
+                |   NAME
+                
