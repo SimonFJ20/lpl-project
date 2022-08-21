@@ -4,32 +4,27 @@
 #include <sstream>
 #include <string>
 
-std::string Parsed::Assignment::to_string() const
+std::string Parsed::SymbolType::to_string() const
 {
     auto result = std::stringstream {};
-    result << "Assignment { target: " << target->to_string()
-           << ", value: " << value->to_string() << " }";
+    result << "SymbolType { value: \"" << value << "\" }";
     return result.str();
 }
 
-std::string Parsed::ExpressionStatement::to_string() const
+std::string Parsed::SymbolTarget::to_string() const
 {
     auto result = std::stringstream {};
-    result << "ExpressionStatement { " << expression->to_string() << " }";
+    result << "SymbolTarget { value: \"" << value << "\" }";
     return result.str();
 }
 
-std::string Parsed::Block::to_string() const
+std::string Parsed::Parameter::to_string() const
 {
     auto result = std::stringstream {};
-    result << "Block { statements: [ ";
-    for (const auto& s : statements)
-        result << s->to_string() << ", ";
-    result << " ]";
-    if (value) {
-        result << ", value: " << (*value)->to_string();
-    }
-    result << " }";
+    result << "Parameter { target: " << target->to_string();
+    if (type)
+        result << ", type: " << (*type)->to_string();
+    result << ". is_mutable: " << (is_mutable ? "true" : "false") << " }";
     return result.str();
 }
 
@@ -141,6 +136,45 @@ std::string Parsed::Symbol::to_string() const
     return result.str();
 }
 
+std::string Parsed::Let::to_string() const
+{
+    auto result = std::stringstream {};
+    result << "Let { parameter: " << parameter->to_string();
+    if (value)
+        result << ", value: " << (*value)->to_string();
+    result << " }";
+    return result.str();
+}
+
+std::string Parsed::Assignment::to_string() const
+{
+    auto result = std::stringstream {};
+    result << "Assignment { target: " << target->to_string()
+           << ", value: " << value->to_string() << " }";
+    return result.str();
+}
+
+std::string Parsed::ExpressionStatement::to_string() const
+{
+    auto result = std::stringstream {};
+    result << "ExpressionStatement { " << expression->to_string() << " }";
+    return result.str();
+}
+
+std::string Parsed::Block::to_string() const
+{
+    auto result = std::stringstream {};
+    result << "Block { statements: [ ";
+    for (const auto& s : statements)
+        result << s->to_string() << ", ";
+    result << " ]";
+    if (value) {
+        result << ", value: " << (*value)->to_string();
+    }
+    result << " }";
+    return result.str();
+}
+
 std::string token_type_to_string(TokenType type)
 {
     switch (type) {
@@ -156,6 +190,7 @@ std::string token_type_to_string(TokenType type)
     case TokenType::Func: return "Func";
     case TokenType::Return: return "Return";
     case TokenType::Let: return "Let";
+    case TokenType::Mut: return "Mut";
     case TokenType::False: return "False";
     case TokenType::True: return "True";
     case TokenType::Plus: return "Plus";

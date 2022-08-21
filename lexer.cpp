@@ -184,6 +184,8 @@ TokenType Lexer::identifier_token_type(const std::string& value)
         return TokenType::Return;
     else if (value.compare("let") == 0)
         return TokenType::Let;
+    else if (value.compare("mut") == 0)
+        return TokenType::Mut;
     else if (value.compare("false") == 0)
         return TokenType::False;
     else if (value.compare("true") == 0)

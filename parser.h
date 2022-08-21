@@ -12,9 +12,65 @@ struct Node {
     virtual std::string to_string() const = 0;
 };
 
-enum class StatementType {
-    Assignment,
-    Expression,
+enum class TypeType {
+    Symbol,
+};
+
+struct Type : public Node {
+    virtual ~Type() = default;
+    constexpr virtual TypeType type_type() const = 0;
+};
+
+struct SymbolType final : public Type {
+    SymbolType(const std::string value)
+        : value { value }
+    {
+    }
+    ~SymbolType() = default;
+    std::string to_string() const override;
+    constexpr TypeType type_type() const override { return TypeType::Symbol; }
+
+    const std::string value;
+};
+
+enum class ParameterTargetType {
+    Symbol,
+};
+
+struct ParameterTarget : public Node {
+    virtual ~ParameterTarget() = default;
+    constexpr virtual ParameterTargetType parameter_target_type() const = 0;
+};
+
+struct SymbolTarget final : public ParameterTarget {
+    SymbolTarget(const std::string value)
+        : value { value }
+    {
+    }
+    ~SymbolTarget() = default;
+    std::string to_string() const override;
+    constexpr virtual ParameterTargetType parameter_target_type() const override
+    {
+        return ParameterTargetType::Symbol;
+    }
+
+    const std::string value;
+};
+
+struct Parameter final : public Node {
+    Parameter(std::unique_ptr<ParameterTarget> target,
+        std::optional<std::unique_ptr<Type>> type, bool is_mutable)
+        : target { std::move(target) }
+        , type { std::move(type) }
+        , is_mutable { is_mutable }
+    {
+    }
+    ~Parameter() = default;
+    std::string to_string() const;
+
+    std::unique_ptr<ParameterTarget> target;
+    std::optional<std::unique_ptr<Type>> type;
+    bool is_mutable;
 };
 
 enum class ExpressionType {
@@ -209,12 +265,35 @@ struct Symbol final : public Expression {
     const std::string value;
 };
 
+enum class StatementType {
+    Let,
+    Assignment,
+    Expression,
+};
+
 struct Statement : public Node {
     virtual ~Statement() = default;
     constexpr virtual StatementType statement_type() const = 0;
 };
 
-struct Assignment : public Statement {
+struct Let final : public Statement {
+    Let(
+
+        std::unique_ptr<Parameter> parameter,
+        std::optional<std::unique_ptr<Expression>> value)
+        : parameter { std::move(parameter) }
+        , value { std::move(value) }
+    {
+    }
+    ~Let() = default;
+    std::string to_string() const override;
+    StatementType statement_type() const override { return StatementType::Let; }
+
+    std::unique_ptr<Parameter> parameter;
+    std::optional<std::unique_ptr<Expression>> value;
+};
+
+struct Assignment final : public Statement {
     Assignment(
         std::unique_ptr<Expression> target, std::unique_ptr<Expression> value)
         : target { std::move(target) }
@@ -232,7 +311,7 @@ struct Assignment : public Statement {
     std::unique_ptr<Expression> value;
 };
 
-struct ExpressionStatement : public Statement {
+struct ExpressionStatement final : public Statement {
     ExpressionStatement(std::unique_ptr<Expression> expression)
         : expression { std::move(expression) }
     {
@@ -275,6 +354,11 @@ public:
     }
 
     std::unique_ptr<Parsed::Node> parse();
+    std::optional<std::unique_ptr<Parsed::Let>> maybe_parse_let();
+    std::unique_ptr<Parsed::Parameter> parse_parameter();
+    std::unique_ptr<Parsed::Type> parse_type();
+    std::optional<std::unique_ptr<Parsed::SymbolType>>
+    maybe_parse_symbol_type();
     std::optional<std::unique_ptr<Parsed::Assignment>> maybe_parse_assignment();
     std::unique_ptr<Parsed::Expression> parse_expression();
     std::unique_ptr<Parsed::Block> parse_block();

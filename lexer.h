@@ -27,6 +27,7 @@ enum class TokenType {
     Func,
     Return,
     Let,
+    Mut,
     False,
     True,
     Plus,

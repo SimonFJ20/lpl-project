@@ -1,5 +1,7 @@
 #include "parser.h"
 #include "lexer.h"
+#include <cstddef>
+#include <exception>
 #include <iostream>
 #include <memory>
 #include <optional>
@@ -8,6 +10,79 @@
 // ParsedNode Parser::parse() {
 
 // }
+
+std::optional<std::unique_ptr<Parsed::Let>> Parser::maybe_parse_let()
+{
+    if (done() || current().type != TokenType::Let)
+        return std::nullopt;
+    step();
+    auto parameter = parse_parameter();
+    auto value = [&]() -> std::optional<std::unique_ptr<Parsed::Expression>> {
+        if (!done() && current().type == TokenType::AssignEqual) {
+            step();
+            return std::optional { parse_expression() };
+        } else {
+            return std::nullopt;
+        }
+    }();
+    return std::make_unique<Parsed::Let>(
+        std::move(parameter), std::move(value));
+}
+
+std::unique_ptr<Parsed::Parameter> Parser::parse_parameter()
+{
+    const auto is_mutable = [&]() {
+        if (!done() && current().type == TokenType::Mut) {
+            step();
+            return true;
+        } else {
+            return false;
+        }
+    }();
+    auto target = [&]() {
+        if (!done() && current().type == TokenType::Name) {
+            const auto identifier = current().value;
+            step();
+            return std::make_unique<Parsed::SymbolTarget>(identifier);
+        } else {
+            error_and_exit("expected parameter target");
+            std::terminate();
+        }
+    }();
+    auto type = [&]() -> std::optional<std::unique_ptr<Parsed::Type>> {
+        if (!done() && current().type == TokenType::Colon) {
+            step();
+            return std::optional { parse_type() };
+        } else {
+            return std::nullopt;
+        }
+    }();
+
+    return std::make_unique<Parsed::Parameter>(
+        std::move(target), std::move(type), is_mutable);
+}
+
+std::unique_ptr<Parsed::Type> Parser::parse_type()
+{
+    if (auto type = maybe_parse_symbol_type()) {
+        return std::move(*type);
+    } else {
+        error_and_exit("expected type");
+        std::terminate();
+    }
+}
+
+std::optional<std::unique_ptr<Parsed::SymbolType>>
+Parser::maybe_parse_symbol_type()
+{
+    if (!done() && current().type == TokenType::Name) {
+        const auto value = current().value;
+        step();
+        return std::make_unique<Parsed::SymbolType>(value);
+    } else {
+        return std::nullopt;
+    }
+}
 
 std::optional<std::unique_ptr<Parsed::Assignment>>
 Parser::maybe_parse_assignment()
@@ -40,7 +115,12 @@ std::unique_ptr<Parsed::Block> Parser::parse_block()
     auto value
         = std::optional<std::unique_ptr<Parsed::Expression>> { std::nullopt };
     while (!done() && current().type != TokenType::RBrace) {
-        if (auto statement = maybe_parse_assignment()) {
+        if (auto statement = maybe_parse_let()) {
+            statements.push_back(std::move(*statement));
+            if (current().type != TokenType::Semicolon)
+                error_and_exit("expected `;`");
+            step();
+        } else if (auto statement = maybe_parse_assignment()) {
             statements.push_back(std::move(*statement));
             if (current().type != TokenType::Semicolon)
                 error_and_exit("expected `;`");
@@ -171,9 +251,10 @@ std::unique_ptr<Parsed::Expression> Parser::parse_value()
     case TokenType::False: return parse_bool();
     case TokenType::Name: return parse_symbol();
     default:
-        std::cerr << "internal: unexhaustive match at " << __FILE__ << ":"
-                  << __LINE__ << ": in " << __func__ << "\n";
-        exit(1);
+        std::cerr << "internal: unexhaustive match (" << current().to_string()
+                  << ")\n\tat " << __FILE__ << ":" << __LINE__ << ": in "
+                  << __func__ << "\n";
+        std::terminate();
     }
 }
 
@@ -286,7 +367,7 @@ void Parser::error_and_exit(const std::string& msg)
 {
     std::cerr << "ParserError: " << msg
               << "\n    // TODO handle errors in parser\n";
-    exit(1);
+    std::terminate();
 }
 
 constexpr int Parser::binary_operator_precedence(
