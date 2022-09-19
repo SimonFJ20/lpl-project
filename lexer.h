@@ -22,6 +22,7 @@ enum class TokenType {
     String,
     Name,
     If,
+    Else,
     While,
     Break,
     Func,

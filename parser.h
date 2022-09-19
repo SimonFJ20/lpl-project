@@ -74,6 +74,7 @@ struct Parameter final : public Node {
 };
 
 enum class ExpressionType {
+    If,
     Block,
     BinaryOperation,
     UnaryOperation,
@@ -344,6 +345,27 @@ struct Block final : public Expression {
     std::optional<std::unique_ptr<Expression>> value;
 };
 
+struct If final : public Expression {
+    If(std::unique_ptr<Expression> condition,
+        std::unique_ptr<Block> body_truthy,
+        std::optional<std::unique_ptr<Block>> body_falsy)
+        : condition { std::move(condition) }
+        , body_truthy { std::move(body_truthy) }
+        , body_falsy { std::move(body_falsy) }
+    {
+    }
+    ~If() = default;
+    std::string to_string() const override;
+    constexpr ExpressionType expression_type() const override
+    {
+        return ExpressionType::If;
+    }
+
+    std::unique_ptr<Expression> condition;
+    std::unique_ptr<Block> body_truthy;
+    std::optional<std::unique_ptr<Block>> body_falsy;
+};
+
 }
 
 class Parser {
@@ -361,6 +383,7 @@ public:
     maybe_parse_symbol_type();
     std::optional<std::unique_ptr<Parsed::Assignment>> maybe_parse_assignment();
     std::unique_ptr<Parsed::Expression> parse_expression();
+    std::unique_ptr<Parsed::If> parse_if();
     std::unique_ptr<Parsed::Block> parse_block();
     std::unique_ptr<Parsed::Expression> parse_binary_operation();
     constexpr int binary_operator_precedence(Parsed::BinaryOperator op) const;

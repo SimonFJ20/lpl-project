@@ -103,9 +103,27 @@ Parser::maybe_parse_assignment()
 std::unique_ptr<Parsed::Expression> Parser::parse_expression()
 {
     switch (current().type) {
+    case TokenType::If: return parse_if();
     case TokenType::LBrace: return parse_block();
     default: return parse_binary_operation();
     }
+}
+
+std::unique_ptr<Parsed::If> Parser::parse_if()
+{
+    step();
+    auto condition = parse_expression();
+    auto body_truthy = parse_block();
+    auto body_falsy = [&]() -> std::optional<std::unique_ptr<Parsed::Block>> {
+        if (current().type == TokenType::Else) {
+            step();
+            return { parse_block() };
+        } else {
+            return std::nullopt;
+        }
+    }();
+    return std::make_unique<Parsed::If>(
+        std::move(condition), std::move(body_truthy), std::move(body_falsy));
 }
 
 std::unique_ptr<Parsed::Block> Parser::parse_block()
@@ -164,9 +182,9 @@ std::unique_ptr<Parsed::Expression> Parser::parse_binary_operation()
     auto last_precedence = 20;
     while (!done()) {
         const auto operator_ = maybe_parse_binary_operator();
-        if (!operator_.has_value())
+        if (!operator_)
             break;
-        const auto precedence = binary_operator_precedence(operator_.value());
+        const auto precedence = binary_operator_precedence(*operator_);
         auto right = parse_unary_operation();
         while (precedence <= last_precedence && expression_stack.size() > 1) {
             auto right = pop_expression();
@@ -183,7 +201,7 @@ std::unique_ptr<Parsed::Expression> Parser::parse_binary_operation()
                     std::move(left), std::move(right), operator_));
         }
         expression_stack.push_back(std::move(right));
-        operator_stack.push_back(operator_.value());
+        operator_stack.push_back(*operator_);
     }
     while (expression_stack.size() > 1) {
         auto right = pop_expression();

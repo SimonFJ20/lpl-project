@@ -16,7 +16,7 @@
     - [x] Unary operaion
     - [x] Binary operation
     - [x] Block
-    - [ ] If
+    - [x] If
     - [ ] Match
     - [ ] Range
   - [ ] Statements

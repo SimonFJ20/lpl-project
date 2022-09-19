@@ -175,6 +175,17 @@ std::string Parsed::Block::to_string() const
     return result.str();
 }
 
+std::string Parsed::If::to_string() const
+{
+    auto result = std::stringstream {};
+    result << "If { condition: " << condition->to_string()
+           << ", body_truthy: " << body_truthy->to_string();
+    if (body_falsy)
+        result << ", " << (*body_falsy)->to_string();
+    result << " }";
+    return result.str();
+}
+
 std::string token_type_to_string(TokenType type)
 {
     switch (type) {
@@ -185,6 +196,7 @@ std::string token_type_to_string(TokenType type)
     case TokenType::String: return "String";
     case TokenType::Name: return "Name";
     case TokenType::If: return "If";
+    case TokenType::Else: return "Else";
     case TokenType::While: return "While";
     case TokenType::Break: return "Break";
     case TokenType::Func: return "Func";

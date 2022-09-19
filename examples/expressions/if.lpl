@@ -4,3 +4,24 @@ if true {
 } else {
     6
 }
+/*
+Tokenizing
+Lexer yeilded 15 tokens
+        Token { type: If, value: "if"}
+        Token { type: True, value: "true"}
+        Token { type: LBrace, value: "{"}
+        Token { type: Let, value: "let"}
+        Token { type: Name, value: "a"}
+        Token { type: AssignEqual, value: "="}
+        Token { type: Int, value: "5"}
+        Token { type: Semicolon, value: ";"}
+        Token { type: Name, value: "a"}
+        Token { type: RBrace, value: "}"}
+        Token { type: Name, value: "else"}
+        Token { type: LBrace, value: "{"}
+        Token { type: Int, value: "6"}
+        Token { type: RBrace, value: "}"}
+        Token { type: EndOfFile, value: ""}
+Parsing
+If { condition: Bool { true }, body_truthy: Block { statements: [ Let { parameter: Parameter { target: SymbolTarget { value: "a" }. is_mutable: false }, value: Int { 5 } },  ], value: Symbol { a } } }
+*/
