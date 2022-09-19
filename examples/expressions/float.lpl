@@ -1,0 +1,9 @@
+3.14
+/*
+Tokenizing
+Lexer yeilded 2 tokens
+        Token { type: Float, value: "3.14"}
+        Token { type: EndOfFile, value: ""}
+Parsing
+Float { 3.14 }
+*/

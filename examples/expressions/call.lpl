@@ -1,0 +1,20 @@
+(my_function(a, b))(1, 2)
+/*
+Lexer yeilded 14 tokens
+        Token { type: LParen, value: "("}
+        Token { type: Name, value: "my_function"}
+        Token { type: LParen, value: "("}
+        Token { type: Name, value: "a"}
+        Token { type: Comma, value: ","}
+        Token { type: Name, value: "b"}
+        Token { type: RParen, value: ")"}
+        Token { type: RParen, value: ")"}
+        Token { type: LParen, value: "("}
+        Token { type: Int, value: "1"}
+        Token { type: Comma, value: ","}
+        Token { type: Int, value: "2"}
+        Token { type: RParen, value: ")"}
+        Token { type: EndOfFile, value: ""}
+Parsing
+Call { callee: Call { callee: Symbol { my_function }, args: [ Symbol { a }, Symbol { b },  ] }, args: [ Int { 1 }, Int { 2 },  ] }
+*/

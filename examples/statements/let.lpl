@@ -1,0 +1,19 @@
+{
+    let a: MyType = 5;
+}
+/*
+Tokenizing
+Lexer yeilded 10 tokens
+        Token { type: LBrace, value: "{"}
+        Token { type: Let, value: "let"}
+        Token { type: Name, value: "a"}
+        Token { type: Colon, value: ":"}
+        Token { type: Name, value: "MyType"}
+        Token { type: AssignEqual, value: "="}
+        Token { type: Int, value: "5"}
+        Token { type: Semicolon, value: ";"}
+        Token { type: RBrace, value: "}"}
+        Token { type: EndOfFile, value: ""}
+Parsing
+Block { statements: [ Let { parameter: Parameter { target: SymbolTarget { value: "a" }, type: SymbolType { value: "MyType" }. is_mutable: false }, value: Int { 5 } },  ] }
+*/

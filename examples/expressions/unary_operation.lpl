@@ -1,0 +1,10 @@
+!true
+/*
+Tokenizing
+Lexer yeilded 3 tokens
+        Token { type: LogicalNot, value: "!"}
+        Token { type: True, value: "true"}
+        Token { type: EndOfFile, value: ""}
+Parsing
+UnaryOperation { expression: Bool { true }, operator: LogicalNot }
+*/

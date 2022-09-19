@@ -1,0 +1,10 @@
+'\n'
+/*
+Tokenizing
+Lexer yeilded 2 tokens
+        Token { type: Char, value: "'\n'"}
+        Token { type: EndOfFile, value: ""}
+Parsing
+Char { '
+' }
+*/

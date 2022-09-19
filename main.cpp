@@ -19,9 +19,15 @@ std::string read_file_to_string(std::string filename)
     return ss.str();
 }
 
-int main()
+int main(int argc, char** argv)
 {
-    auto text = read_file_to_string("../examples/test.lpl");
+    // auto text = read_file_to_string("../examples/test.lpl");
+    if (argc < 2) {
+        std::cerr << "fatal: lack of args :(\n"
+                  << "USAGE: lpl <file>\n";
+        exit(1);
+    }
+    auto text = read_file_to_string(argv[1]);
     std::cout << "Tokenizing\n";
     auto lexer = Lexer(text);
     auto tokens = lexer.tokenize();

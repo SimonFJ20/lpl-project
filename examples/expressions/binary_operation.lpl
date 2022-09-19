@@ -1,0 +1,11 @@
+1 + 2
+/*
+Tokenizing
+Lexer yeilded 4 tokens
+        Token { type: Int, value: "1"}
+        Token { type: Plus, value: "+"}
+        Token { type: Int, value: "2"}
+        Token { type: EndOfFile, value: ""}
+Parsing
+BinaryOperation { left: Int { 1 }, right: Int { 2 }, operator: Add }
+*/

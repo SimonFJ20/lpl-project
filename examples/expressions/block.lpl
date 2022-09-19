@@ -1,0 +1,16 @@
+{
+    2;
+    3
+}
+/*
+Tokenizing
+Lexer yeilded 6 tokens
+        Token { type: LBrace, value: "{"}
+        Token { type: Int, value: "2"}
+        Token { type: Semicolon, value: ";"}
+        Token { type: Int, value: "3"}
+        Token { type: RBrace, value: "}"}
+        Token { type: EndOfFile, value: ""}
+Parsing
+Block { statements: [ ExpressionStatement { Int { 2 } },  ], value: Int { 3 } }
+*/

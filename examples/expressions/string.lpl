@@ -1,0 +1,10 @@
+"hello world\n"
+/*
+Tokenizing
+Lexer yeilded 2 tokens
+        Token { type: String, value: ""hello world\n""}
+        Token { type: EndOfFile, value: ""}
+Parsing
+String { "hello world
+" }
+*/

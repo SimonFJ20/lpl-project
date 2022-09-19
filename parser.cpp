@@ -286,10 +286,10 @@ std::unique_ptr<Parsed::Char> Parser::parse_char()
 {
     const auto& token = current();
     const auto value = [&]() {
-        if (token.value[0] == '\\') {
-            return unescape_char_value(token.value[1]);
+        if (token.value[1] == '\\') {
+            return unescape_char_value(token.value[2]);
         } else {
-            return token.value[0];
+            return token.value[1];
         }
     }();
     step();

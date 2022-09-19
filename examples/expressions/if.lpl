@@ -1,0 +1,6 @@
+if true {
+    let a = 5;
+    a
+} else {
+    6
+}

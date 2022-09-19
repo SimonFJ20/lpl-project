@@ -1,0 +1,9 @@
+true
+/*
+Tokenizing
+Lexer yeilded 2 tokens
+        Token { type: True, value: "true"}
+        Token { type: EndOfFile, value: ""}
+Parsing
+Bool { true }
+*/

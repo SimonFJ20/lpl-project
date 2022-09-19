@@ -102,9 +102,9 @@ Token Lexer::make_number()
     while (
         !done() && (std::isdigit(m_text[m_index]) || m_text[m_index] == '.')) {
         if (m_text[m_index] == '.' && dots < 1) {
+            if (dots >= 1)
+                break;
             dots++;
-        } else if (dots >= 1) {
-            break;
         }
         value.push_back(m_text[m_index]);
         step();

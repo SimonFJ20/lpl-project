@@ -1,0 +1,16 @@
+{
+    a = 5;
+}
+/*
+Tokenizing
+Lexer yeilded 7 tokens
+        Token { type: LBrace, value: "{"}
+        Token { type: Name, value: "a"}
+        Token { type: AssignEqual, value: "="}
+        Token { type: Int, value: "5"}
+        Token { type: Semicolon, value: ";"}
+        Token { type: RBrace, value: "}"}
+        Token { type: EndOfFile, value: ""}
+Parsing
+Block { statements: [ Assignment { target: Symbol { a }, value: Int { 5 } },  ] }
+*/

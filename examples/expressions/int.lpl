@@ -1,0 +1,9 @@
+342
+/* lexer:
+Tokenizing
+Lexer yeilded 2 tokens
+        Token { type: Int, value: "342"}
+        Token { type: EndOfFile, value: ""}
+Parsing
+Int { 342 }
+*/
